@@ -1,8 +1,11 @@
 import crypto from 'crypto';
 import { Todo } from '../data/todo';
 
+export type TodoSubscriber = (items: Todo[]) => void;
+
 export class TodoRepository {
   private _items: Todo[];
+  private _subscribers: TodoSubscriber[] = [];
 
   public constructor() {
     this._items = [
@@ -27,6 +30,21 @@ export class TodoRepository {
     ];
   }
 
+  public subscribe(subscriber: TodoSubscriber): () => void {
+    const subId = crypto.randomBytes(4).toString('hex');
+    console.log(`Started subscription ${subId}`);
+    this._subscribers.push(subscriber);
+    subscriber(this._items);
+
+    return () => {
+      const index = this._subscribers.findIndex((x) => x === subscriber);
+      if (index !== -1) {
+        this._subscribers.splice(index, 1);
+        console.log(`Closed subscription ${subId}`);
+      }
+    };
+  }
+
   public getAll(): Todo[] {
     return this._items;
   }
@@ -41,6 +59,7 @@ export class TodoRepository {
       id: crypto.randomBytes(4).toString('hex'),
     };
     this._items.push(entity);
+    this._notifyChange();
     return entity;
   }
 
@@ -56,6 +75,7 @@ export class TodoRepository {
       id,
     };
     this._items.push(patchedEntity);
+    this._notifyChange();
     return patchedEntity;
   }
 
@@ -65,6 +85,11 @@ export class TodoRepository {
       return false;
     }
     this._items.splice(entityIndex, 1);
+    this._notifyChange();
     return true;
+  }
+
+  private _notifyChange() {
+    this._subscribers.forEach((x) => x(this._items));
   }
 }
