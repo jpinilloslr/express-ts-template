@@ -4,14 +4,12 @@ import {
   errorHandler,
   installGlobalErrorHandlers,
 } from './middlewares/error-handler-middleware';
-import { todoStore } from './middlewares/todo-middleware';
 import { getHealthRouter } from './routers/health-router';
 import { getTodoRouter } from './routers/todo-router';
 
 const run = async () => {
   const app = express();
   app.use(express.json());
-  app.use(todoStore);
 
   app.use('/todo', basicAuth('user', '1234'), getTodoRouter());
   app.use('/health', getHealthRouter());

@@ -2,17 +2,18 @@ import express from 'express';
 import { Todo } from '../data/todo';
 import { TodoCreationSchema, TodoUpdateSchema } from '../data/todo-schemas';
 import { validateSchema } from '../middlewares/schema-validator';
+import { Store } from '../services/store';
 
 export const getTodoRouter = () => {
   const router = express.Router();
 
-  router.get('/', (req, resp) => {
-    const items = req.todoStore.getAll();
+  router.get('/', (_req, resp) => {
+    const items = Store.todo.getAll();
     resp.status(200).json(items);
   });
 
   router.get('/:id', (req, resp) => {
-    const items = req.todoStore.getById(req.params.id);
+    const items = Store.todo.getById(req.params.id);
     resp.status(200).json(items);
   });
 
@@ -24,7 +25,7 @@ export const getTodoRouter = () => {
     (req, resp) => {
       const item = req.body as Todo;
       item.completed = false;
-      const entity = req.todoStore.create(item);
+      const entity = Store.todo.create(item);
       resp.status(200).json(entity);
     },
   );
@@ -37,17 +38,14 @@ export const getTodoRouter = () => {
     (req, resp) => {
       const id = req.params.id as string;
       const item = req.body as Todo;
-      const entity = req.todoStore.update(id, item);
-      if (new Date().getTime()) {
-        throw new Error('Fake error here');
-      }
+      const entity = Store.todo.update(id, item);
       resp.status(202).json(entity);
     },
   );
 
   router.delete('/:id', (req, resp) => {
     const id = req.params.id as string;
-    req.todoStore.delete(id);
+    Store.todo.delete(id);
     resp.sendStatus(202);
   });
 

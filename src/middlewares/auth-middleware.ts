@@ -23,6 +23,7 @@ export const basicAuth = (username: string, password: string) => {
         sendAccessDenied();
         return;
       }
+      req.user = reqUsername;
     } catch (err) {
       console.error('Something went wrong authenticating', err);
       sendAccessDenied();
