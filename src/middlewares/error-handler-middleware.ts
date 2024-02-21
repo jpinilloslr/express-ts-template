@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { ValidationError } from 'express-json-validator-middleware';
 
 export const installGlobalErrorHandlers = () => {
   process.on('uncaughtException', (err) => _trackError(err));
@@ -13,6 +14,22 @@ export const errorHandler = (
   _next: NextFunction,
 ) => {
   _trackError(error);
+
+  if (error instanceof SyntaxError) {
+    resp.status(400).json({
+      message: 'Invalid input syntax',
+    });
+    return;
+  }
+
+  if (error instanceof ValidationError) {
+    resp.status(400).json({
+      message: 'Invalid input',
+      validationErrors: error.validationErrors,
+    });
+    return;
+  }
+
   resp.status(500).json({
     message: 'Unexpected error processing the request',
   });
